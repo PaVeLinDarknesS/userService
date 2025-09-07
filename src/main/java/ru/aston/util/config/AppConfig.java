@@ -12,15 +12,19 @@ import ru.aston.service.impl.UserServiceImpl;
 
 public final class AppConfig {
 
-    private final static SessionFactory SESSION_FACTORY = HibernateConfig.getSessionFactory();
+    private static final SessionFactory SESSION_FACTORY = HibernateConfig.getSessionFactory();
 
     private final static UserRepository USER_REPOSITORY = new UserRepositoryImpl(SESSION_FACTORY);
 
     private final static Mapper<UserDto, UserEntity> MAPPER = new UserMapper();
 
-    private final static UserService USER_SERVICE = new UserServiceImpl(USER_REPOSITORY, MAPPER);
+    private final static UserService USER_SERVICE = new UserServiceImpl(USER_REPOSITORY);
 
     public static UserService getUserService() {
         return USER_SERVICE;
+    }
+
+    public static Mapper<UserDto, UserEntity> getUserMapper() {
+        return MAPPER;
     }
 }

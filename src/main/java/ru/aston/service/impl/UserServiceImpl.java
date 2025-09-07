@@ -2,62 +2,52 @@ package ru.aston.service.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.aston.dto.UserDto;
 import ru.aston.entity.UserEntity;
 import ru.aston.exception.DataBaseException;
 import ru.aston.exception.ExistingEmailException;
 import ru.aston.exception.UserNotFoundException;
-import ru.aston.mapper.Mapper;
 import ru.aston.repository.UserRepository;
 import ru.aston.service.UserService;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class UserServiceImpl implements UserService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final UserRepository userRepository;
-    private final Mapper<UserDto, UserEntity> userMapper;
 
-    public UserServiceImpl(UserRepository userRepository, Mapper<UserDto, UserEntity> mapper) {
+    public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.userMapper = mapper;
     }
 
     @Override
-    public List<UserDto> findAll() {
-        return userRepository.findAll().stream()
-                .map(userMapper::entityToDto)
-                .collect(Collectors.toList());
+    public List<UserEntity> findAll() {
+        return userRepository.findAll();
     }
 
     @Override
-    public UserDto findById(Long id) {
-        UserEntity userEntity = getUserById(id);
-        return userMapper.entityToDto(userEntity);
+    public UserEntity findById(Long id) {
+        return getUserById(id);
     }
 
     @Override
-    public UserDto findByEmail(String email) {
-        UserEntity userEntity = userRepository.findByEmail(email)
+    public UserEntity findByEmail(String email) {
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found with email = " + email));
-        return userMapper.entityToDto(userEntity);
     }
 
     @Override
-    public UserDto insert(UserDto user) {
+    public UserEntity insert(UserEntity user) {
         checkExistEmail(user.getEmail());
-        UserEntity newUser = userMapper.dtoToEntity(user);
-        UserEntity savedUser = userRepository.save(newUser);
+        UserEntity savedUser = userRepository.save(user);
         LOGGER.info("Created new user with id = '{}'", savedUser.getId());
 
-        return userMapper.entityToDto(savedUser);
+        return savedUser;
     }
 
     @Override
-    public UserDto update(long userId, UserDto user) {
+    public UserEntity update(long userId, UserEntity user) {
         UserEntity oldUser = getUserById(userId);
         if (!oldUser.getEmail().equals(user.getEmail())) {
             checkExistEmail(user.getEmail());
@@ -71,7 +61,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new DataBaseException("Cannot update user with id" + userId));
         LOGGER.info("User was successfully updated with id = '{}'", updatedUser.getId());
 
-        return userMapper.entityToDto(updatedUser);
+        return updatedUser;
     }
 
     @Override

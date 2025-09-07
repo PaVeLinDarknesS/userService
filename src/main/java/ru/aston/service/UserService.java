@@ -1,20 +1,20 @@
 package ru.aston.service;
 
-import ru.aston.dto.UserDto;
+import ru.aston.entity.UserEntity;
 
 import java.util.List;
 
 public interface UserService {
 
-    List<UserDto> findAll();
+    List<UserEntity> findAll();
 
-    UserDto findById(Long id);
+    UserEntity findById(Long id);
 
-    UserDto findByEmail(String email);
+    UserEntity findByEmail(String email);
 
-    UserDto insert(UserDto user);
+    UserEntity insert(UserEntity user);
 
-    UserDto update(long userId, UserDto user);
+    UserEntity update(long userId, UserEntity user);
 
     void delete(Long id);
 }
