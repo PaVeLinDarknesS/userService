@@ -14,6 +14,9 @@ import java.util.Properties;
 
 public final class HibernateConfig {
 
+    private static final String PATH_TEST_PROPERTIES = "hibernate-test.properties";
+    private static final String PATH_PRODUCTION_PROPERTIES = "hibernate.properties";
+
     private static final Logger logger = LoggerFactory.getLogger(HibernateConfig.class);
 
     private static final SessionFactory sessionFactory = createSessionFactory();
@@ -22,9 +25,19 @@ public final class HibernateConfig {
 
         Properties properties = new Properties();
 
+        String environment = System.getProperty("app.environment", "production");
+
+        String pathProperties = environment.equals("test") ? PATH_TEST_PROPERTIES : PATH_PRODUCTION_PROPERTIES;
+
         try (InputStream input = HibernateConfig.class.getClassLoader()
-                .getResourceAsStream("hibernate.properties")) {
+                .getResourceAsStream(pathProperties)) {
             properties.load(input);
+
+            if (environment.equals("test")) {
+                properties.setProperty("hibernate.connection.url", System.getProperty("hibernate.connection.url"));
+                properties.setProperty("hibernate.connection.username", System.getProperty("hibernate.connection.username"));
+                properties.setProperty("hibernate.connection.password", System.getProperty("hibernate.connection.password"));
+            }
 
             StandardServiceRegistry registry = new StandardServiceRegistryBuilder()
                     .applySettings(properties)

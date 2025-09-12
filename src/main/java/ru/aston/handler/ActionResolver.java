@@ -3,7 +3,9 @@ package ru.aston.handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.aston.dto.UserDto;
+import ru.aston.entity.UserEntity;
 import ru.aston.enumeration.ActionEnum;
+import ru.aston.mapper.Mapper;
 import ru.aston.service.UserService;
 import ru.aston.util.ValidationUtil;
 import ru.aston.util.config.AppConfig;
@@ -17,11 +19,14 @@ public class ActionResolver {
     private final Scanner scanner;
     private final UserService userService;
     private final Map<ActionEnum, Handler> resolver;
+    private final Mapper<UserDto, UserEntity> userMapper;
 
     public ActionResolver() {
+
         scanner = new Scanner(System.in);
         userService = AppConfig.getUserService();
         resolver = new EnumMap<>(ActionEnum.class);
+        userMapper = AppConfig.getUserMapper();
 
         resolver.put(ActionEnum.LIST, this::listUser);
         resolver.put(ActionEnum.FIND, this::findUser);
@@ -37,15 +42,16 @@ public class ActionResolver {
 
     private void listUser() {
         LOGGER.info("Пользователь выбрал список всех User");
-        List<UserDto> users = userService.findAll();
+        List<UserEntity> users = userService.findAll();
+
         if (users.isEmpty()) {
             LOGGER.info("Пользователей нет в базе данных");
             System.out.println("Пользователей не найдено в базе данных");
         } else {
             System.out.printf("Найдено %d пользователей:\n", users.size());
-            for (UserDto user : users) {
-                user.print();
-            }
+            users.stream()
+                    .map(userMapper::entityToDto)
+                    .forEach(UserDto::print);
         }
     }
 
@@ -56,7 +62,7 @@ public class ActionResolver {
 
     private void insertUser() {
         LOGGER.info("Пользователь выбрал insert User");
-        if (Objects.nonNull(userService.insert(fillUserDto()))) {
+        if (Objects.nonNull(userService.insert(userMapper.dtoToEntity(fillUserDto())))) {
             System.out.println("Пользователь успешно добавлен");
         }
     }
@@ -64,7 +70,7 @@ public class ActionResolver {
     private void updateUser() {
         LOGGER.info("Пользователь выбрал update User");
         var existingUserId = findAndPrintUserById("для обновления");
-        if (Objects.nonNull(userService.update(existingUserId, fillUserDto()))) {
+        if (Objects.nonNull(userService.update(existingUserId, userMapper.dtoToEntity(fillUserDto())))) {
             System.out.println("Пользователь успешно изменен");
         }
     }
@@ -95,9 +101,9 @@ public class ActionResolver {
         System.out.println("Введите ID пользователя " + reason);
         long userId = scanner.nextLong();
         scanner.nextLine();
-        UserDto existingUser = userService.findById(userId);
+        UserEntity existingUser = userService.findById(userId);
         System.out.println("Найденный пользователь: ");
-        existingUser.print();
+        userMapper.entityToDto(existingUser).print();
         return userId;
     }
 }
