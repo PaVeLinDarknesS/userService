@@ -12,7 +12,6 @@ import ru.aston.util.config.HibernateConfig;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -63,16 +62,14 @@ public class UserRepositoryTest {
 
     @Test
     public void findAll_whenOk_listWithUsers() {
-        int usersCount = COUNT_USERS_IN_DB;
-
         List<UserEntity> actualUserEntities = userRepository.findAll();
 
-        assertEquals(usersCount, actualUserEntities.size());
+        assertEquals(COUNT_USERS_IN_DB, actualUserEntities.size());
     }
 
     @Test
     public void findById_whenIdExist_userWithId() {
-        long userId = new Random().nextLong(COUNT_USERS_IN_DB) + 1;
+        long userId = COUNT_USERS_IN_DB - 1;
 
         Optional<UserEntity> actualUser = userRepository.findById(userId);
 
@@ -91,9 +88,7 @@ public class UserRepositoryTest {
 
     @Test
     public void findByEmail_whenEmailExist_userWithId() {
-        String email = EXIST_EMAIL;
-
-        Optional<UserEntity> actualUser = userRepository.findByEmail(email);
+        Optional<UserEntity> actualUser = userRepository.findByEmail(EXIST_EMAIL);
 
         assertTrue(actualUser.isPresent());
     }
@@ -121,19 +116,18 @@ public class UserRepositoryTest {
 
     @Test
     public void save_whenEmailExist_userWithoutId() {
-        String email = EXIST_EMAIL;
         UserEntity user = getUser();
-        user.setEmail(email);
+        user.setEmail(EXIST_EMAIL);
 
         UserEntity actualUser = userRepository.save(user);
 
         assertNull(actualUser.getId());
-        assertEquals(email, actualUser.getEmail());
+        assertEquals(EXIST_EMAIL, actualUser.getEmail());
     }
 
     @Test
     public void delete_whenIdExist() {
-        long existId = new Random().nextLong(COUNT_USERS_IN_DB) + 1;
+        long existId = COUNT_USERS_IN_DB - 1;
         int countUsersInDbBeforeDelete = userRepository.findAll().size();
 
         userRepository.delete(existId);
@@ -171,15 +165,14 @@ public class UserRepositoryTest {
 
     @Test
     public void update_whenEmailExist_emptyOptional() {
-        String email = EXIST_EMAIL;
         UserEntity savedUser = userRepository.save(getUser());
-        savedUser.setEmail(email);
+        savedUser.setEmail(EXIST_EMAIL);
 
         Optional<UserEntity> actualUser = userRepository.update(savedUser);
         savedUser = userRepository.findById(savedUser.getId()).get();
 
         assertTrue(actualUser.isEmpty());
-        assertNotEquals(email, savedUser.getEmail());
+        assertNotEquals(EXIST_EMAIL, savedUser.getEmail());
     }
 
     private UserEntity getUser() {
